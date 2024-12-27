@@ -3,8 +3,17 @@ Copyright © 2024 Jack Wei jackwei2018@outlook.com
 */
 package main
 
-import "github.com/jaxxk/anki-cards-generator/cmd"
+import (
+	"log"
+
+	"github.com/jaxxk/anki-cards-generator/cmd"
+	"github.com/joho/godotenv"
+)
 
 func main() {
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
 	cmd.Execute()
 }
