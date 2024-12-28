@@ -1,6 +1,9 @@
 package transform
 
-import "testing"
+import (
+	"context"
+	"testing"
+)
 
 func TestNewClient(t *testing.T) {
 	t.Parallel()
@@ -11,7 +14,7 @@ func TestNewClient(t *testing.T) {
 }
 func TestNewCompletion(t *testing.T) {
 	t.Parallel()
-	client := NewChatCompletion()
+	client := NewChatCompletion(context.TODO(), "")
 	if client == nil {
 		t.Fatal("expected completion to never be nil")
 	}

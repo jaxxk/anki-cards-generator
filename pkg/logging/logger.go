@@ -33,7 +33,7 @@ func NewLogger(level string, development bool) *zap.SugaredLogger {
 			Development:      true,
 			Encoding:         encodingConsole,
 			EncoderConfig:    developmentEncoderConfig,
-			OutputPaths:      outputStderr,
+			OutputPaths:      []string{"stderr", "app.log"}, // Log to both stderr and a file
 			ErrorOutputPaths: outputStderr,
 		}
 	} else {

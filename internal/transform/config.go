@@ -2,10 +2,13 @@ package transform
 
 import "github.com/openai/openai-go"
 
+// DefaultModel defines the OpenAI model to use for flashcard generation.
 var DefaultModel openai.ChatModel = openai.ChatModelGPT4oMini
 
+// DefaultPrompt is the base prompt for generating flashcards.
 var DefaultPrompt string = `
 You are a tool that processes a text file (in .md or .txt format) containing detailed information. Your task is to generate insightful flashcards by connecting various concepts within the content. Each flashcard should have a front and back in a JSON format.
+Your task is to produce flashcards in a strict JSON format based on the input content. Do not include any text or explanations outside of the JSON structure.
 
 Instructions:
 1. Understand the content: Carefully read through the provided content, identify and extract key concepts, processes, relationships, and ideas that are interrelated.
@@ -32,14 +35,22 @@ Example Structure:
 ]
 `
 
-func DefaultCompletionConfigs() openai.CompletionNewParams {
-	configs := openai.CompletionNewParams{
+// DefaultCompletionConfigs constructs the OpenAI CompletionNewParams for the given input text.
+// inputText: The content to be processed for generating flashcards.
+// Returns: OpenAI CompletionNewParams with the configured parameters.
+func DefaultCompletionConfigs(inputText string) openai.CompletionNewParams {
+	// Concatenate prompt and input text
+	prompt := DefaultPrompt + "\n" + inputText
+
+	// Construct the parameters
+	params := openai.CompletionNewParams{
 		Model:            openai.F(openai.CompletionNewParamsModel(DefaultModel)),
-		Prompt:           openai.F(openai.CompletionNewParamsPromptUnion(openai.CompletionNewParamsPromptArrayOfStrings{DefaultPrompt})),
+		Prompt:           openai.F(openai.CompletionNewParamsPromptUnion(openai.CompletionNewParamsPromptArrayOfStrings{prompt})),
 		BestOf:           openai.Int(1),
 		Temperature:      openai.Float(0.7),
 		FrequencyPenalty: openai.Float(0.5),
 		PresencePenalty:  openai.Float(0.5),
 	}
-	return configs
+
+	return params
 }

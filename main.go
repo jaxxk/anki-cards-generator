@@ -1,6 +1,3 @@
-/*
-Copyright © 2024 Jack Wei jackwei2018@outlook.com
-*/
 package main
 
 import (
