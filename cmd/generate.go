@@ -5,9 +5,12 @@ package cmd
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/spf13/cobra"
 )
+
+var FilePath string
 
 // generateCmd represents the generate command
 var generateCmd = &cobra.Command{
@@ -18,21 +21,26 @@ var generateCmd = &cobra.Command{
 	
 	poggers generate -f /Users/jaxk/notes/notes.md or poggers generate --file ~/notes/notes.md
 	`,
-	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("generate called")
+	RunE: func(cmd *cobra.Command, args []string) error {
+		// ctx := cmd.Context()
+		// logger := logging.FromContext(ctx)
+		if FilePath == "" {
+			return fmt.Errorf("file path cannot be empty")
+		}
+
+		if _, err := os.Stat(FilePath); os.IsNotExist(err) {
+			return fmt.Errorf("error: file %s does not exist", FilePath)
+		}
+
+		fmt.Println(FilePath) // For valid cases, print the file path
+		return nil
 	},
 }
 
 func init() {
 	rootCmd.AddCommand(generateCmd)
 
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// generateCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// generateCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	generateCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	generateCmd.Flags().StringVarP(&FilePath, "file", "f", "", "path to md/txt file (required)")
+	generateCmd.MarkFlagRequired("file")
 }
