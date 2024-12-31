@@ -11,6 +11,7 @@ import (
 )
 
 var FilePath string
+var Title string
 
 // generateCmd represents the generate command
 var generateCmd = &cobra.Command{
@@ -60,6 +61,19 @@ var generateCmd = &cobra.Command{
 			return fmt.Errorf("generated flashcards deck is empty")
 		}
 
+		// Update Title
+		if len(Title) > 0 {
+			newDeck.UpdateTitle(Title)
+		}
+
+		// Save Deck to Processing Dir
+		jsonPath, err := transform.SaveDeck(newDeck)
+		if err != nil {
+			logger.Error("Failed to save deck to %v", jsonPath)
+			return fmt.Errorf("failed to save deck to %v", jsonPath)
+		}
+
+		logger.Infof("Successfully Created %v deck JSON", newDeck.Title)
 		return nil
 	},
 }
@@ -70,4 +84,6 @@ func init() {
 	// Add file flag
 	generateCmd.Flags().StringVarP(&FilePath, "file", "f", "", "Path to .md/.txt file (required)")
 	generateCmd.MarkFlagRequired("file")
+	// Add title flag
+	generateCmd.Flags().StringVarP(&Title, "title", "t", "", "Title for the generated deck of flashcards (optional) will be automatically generated")
 }

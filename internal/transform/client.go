@@ -23,6 +23,7 @@ func NewChatCompletion(ctx context.Context, promptData string) *openai.ChatCompl
 	client := newClient()
 	configs := DefaultChatCompletionConfigs(promptData)
 	logger := logging.FromContext(ctx)
+	logger.Infof("Prompt: \n %v \n", configs.Messages.Value[0])
 	chatCompletion, err := client.Chat.Completions.New(ctx, configs)
 	if err != nil {
 		logger.Errorf("configs: %v", configs)

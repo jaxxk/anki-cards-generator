@@ -1,6 +1,8 @@
 package utils
 
 import (
+	"crypto/rand"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -9,6 +11,8 @@ import (
 
 	"go.uber.org/zap"
 )
+
+var PROCESSING_DIR string = ".anki-cards-generator"
 
 func ResolvePath(path string) (string, error) {
 	absPath, err := filepath.Abs(path)
@@ -80,4 +84,49 @@ func ReadFromFile(path string, logger *zap.SugaredLogger) (string, error) {
 	}
 
 	return inputText, nil
+}
+
+func directoryExists(path string) (bool, error) {
+	_, err := os.Stat(path)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return false, nil // The path does not exist
+		}
+		return false, err // Some other error occurred
+	}
+	return true, nil // Check if it's a directory
+}
+
+// CreateProcessingDir creates a directory under user Home called PROCESSING_DIR if it doesn't exist already.
+// Returns path to the processing directory
+func CreateProcessingDir() (string, error) {
+	userHome, err := os.UserHomeDir()
+	if err != nil {
+		return "", err
+	}
+	processingDirPath := userHome + string(os.PathSeparator) + PROCESSING_DIR
+	dirExists, err := directoryExists(processingDirPath)
+	if err != nil {
+		return "", err
+	}
+	if !dirExists {
+		os.Mkdir(processingDirPath, 0755)
+	}
+	return processingDirPath, nil
+}
+
+// Generates a random file name with a prefix and extension
+func GenerateRandomFileName(prefix, extension string) (string, error) {
+	// Generate 16 random bytes
+	randomBytes := make([]byte, 16)
+	_, err := rand.Read(randomBytes)
+	if err != nil {
+		return "", fmt.Errorf("failed to generate random bytes: %w", err)
+	}
+
+	// Convert to hex string and construct file name
+	randomHex := hex.EncodeToString(randomBytes)
+	fileName := fmt.Sprintf("%s-%s%s", prefix, randomHex, extension)
+
+	return fileName, nil
 }

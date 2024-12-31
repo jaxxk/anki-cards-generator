@@ -13,7 +13,12 @@ type Flashcards struct {
 
 // Deck represents a collection of flashcards.
 type Deck struct {
-	Cards []Flashcards `json:"origin" jsonschema_description:"A deck consisting of flashcards"`
+	Title string       `json:"Title" jsonschema_description:"The title of the deck"`
+	Cards []Flashcards `json:"cards" jsonschema_description:"A deck consisting of flashcards"`
+}
+
+func (deck *Deck) UpdateTitle(title string) {
+	deck.Title = title
 }
 
 // generateSchema generates a JSON schema for the provided type.
