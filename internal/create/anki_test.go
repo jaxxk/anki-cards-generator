@@ -2,7 +2,26 @@ package create
 
 import (
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"go.uber.org/zap"
 )
+
+func TestEnsureAnkiConnect(t *testing.T) {
+	ok, err := EnsureAnkiConnect()
+	assert.NoError(t, err, "expected no error, but got one")
+	if !ok {
+		t.Fatal("expected true but got false")
+	}
+}
+
+func TestCreateDeck(t *testing.T) {
+	ok, err := CreateDeck("test", zap.NewExample().Sugar())
+	assert.NoError(t, err, "expected no error, but got one")
+	if !ok {
+		t.Fatal("true but got false")
+	}
+}
 
 func TestGetDeck(t *testing.T) {
 	tests := []struct {
@@ -27,7 +46,7 @@ func TestGetDeck(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			output, err := GetDeck(tt.input)
+			output, err := GetDeck(tt.input, zap.NewExample().Sugar())
 
 			// Check for errors
 			if (err != nil) != tt.expectedError {
