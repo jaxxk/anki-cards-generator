@@ -36,12 +36,12 @@ func TestGetDeck(t *testing.T) {
 			expectedError:  false, // GetDeck should handle this gracefully without returning an error
 			expectedOutput: false, // Since the deck does not exist
 		},
-		// {
-		// 	name:           "valid deck",
-		// 	input:          "existingDeck", // Deck exists
-		// 	expectedError:  false,          // GetDeck should return no error
-		// 	expectedOutput: true,           // Deck exists
-		// },
+		{
+			name:           "valid deck",
+			input:          "test", // Deck exists
+			expectedError:  false,  // GetDeck should return no error
+			expectedOutput: true,   // Deck exists
+		},
 	}
 
 	for _, tt := range tests {
