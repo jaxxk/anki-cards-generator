@@ -3,6 +3,7 @@ package create
 import (
 	"testing"
 
+	"github.com/jaxxk/anki-cards-generator/internal/transform"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/zap"
 )
@@ -57,6 +58,46 @@ func TestGetDeck(t *testing.T) {
 			if output != tt.expectedOutput {
 				t.Errorf("GetDeck(%q) = %v, expectedOutput = %v", tt.input, output, tt.expectedOutput)
 			}
+
+			// Clean up
+			deleteDeck(tt.input, zap.NewExample().Sugar())
 		})
 	}
+}
+
+func TestSendToAnkiLive(t *testing.T) {
+	logger := zap.NewExample().Sugar()
+	defer logger.Sync()
+
+	// Define a test deck
+	testDeck := transform.Deck{
+		Title: "TestDeck_Live",
+		Cards: []transform.Flashcards{
+			{Front: "Front 1", Back: "Back 1"},
+			{Front: "Front 2", Back: "Back 2"},
+		},
+	}
+
+	// Cleanup function to remove the test deck after the test
+	defer func() {
+		if _, err := deleteDeck(testDeck.Title, logger); err != nil {
+			logger.Errorf("Failed to clean up test deck: %v", err)
+		}
+	}()
+
+	// Run the function
+	err := SendToAnki(testDeck, logger)
+	if err != nil {
+		t.Fatalf("SendToAnki failed: %v", err)
+	}
+
+	// Verify that the deck exists
+	exists, err := GetDeck(testDeck.Title, logger)
+	if err != nil {
+		t.Fatalf("Failed to check if deck exists: %v", err)
+	}
+	if !exists {
+		t.Errorf("Deck '%s' was not created successfully", testDeck.Title)
+	}
+
 }

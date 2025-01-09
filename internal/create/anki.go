@@ -11,7 +11,8 @@ import (
 	"go.uber.org/zap"
 )
 
-var ANKI_ENDPOINT = "http://localhost:8765"
+// var ANKI_ENDPOINT = "http://localhost:8765"
+var ANKI_ENDPOINT = "http://host.docker.internal:8765"
 
 type AnkiConnectGenericResponse struct {
 	Result json.RawMessage `json:"result"`
@@ -53,39 +54,65 @@ func processRequest(reqBody interface{}) (interface{}, error) {
 		return nil, fmt.Errorf("unexpected status code: %d", resp.StatusCode)
 	}
 
-	// Decode the generic response
+	// Decode the raw response
 	rawResp, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read response body: %w", err)
 	}
 
+	// Unmarshal into the generic response structure
 	if err := json.Unmarshal(rawResp, &genericResp); err != nil {
 		return nil, fmt.Errorf("failed to parse response: %w", err)
 	}
 
-	// Check for errors in the response
+	// Handle errors from AnkiConnect
 	if genericResp.Error != "" {
+		var decodedError string
+		if err := json.Unmarshal([]byte(genericResp.Error), &decodedError); err == nil {
+			return nil, fmt.Errorf("anki error: %s", decodedError)
+		}
 		return nil, fmt.Errorf("anki error: %s", genericResp.Error)
 	}
 
-	// Attempt to decode `Result` as both types
+	// Decode `Result` dynamically based on its type
+	var result interface{}
+	if err := decodeResult(genericResp.Result, &result); err != nil {
+		return nil, fmt.Errorf("failed to decode result: %w", err)
+	}
+
+	return result, nil
+}
+
+// Helper function to decode `Result` into its appropriate type
+func decodeResult(rawMessage json.RawMessage, result *interface{}) error {
+	// Attempt to decode as []string
 	var resultArray []string
-	if err := json.Unmarshal(genericResp.Result, &resultArray); err == nil {
-		return resultArray, nil // Successfully decoded as []string
+	if err := json.Unmarshal(rawMessage, &resultArray); err == nil {
+		*result = resultArray
+		return nil
 	}
 
+	// Attempt to decode as string
 	var resultString string
-	if err := json.Unmarshal(genericResp.Result, &resultString); err == nil {
-		return resultString, nil // Successfully decoded as string
+	if err := json.Unmarshal(rawMessage, &resultString); err == nil {
+		*result = resultString
+		return nil
 	}
 
+	// Attempt to decode as json.Number
 	var resultNumber json.Number
-	if err := json.Unmarshal(genericResp.Result, &resultNumber); err == nil {
-		return resultNumber, nil // Successfully decoded as a number
+	if err := json.Unmarshal(rawMessage, &resultNumber); err == nil {
+		*result = resultNumber
+		return nil
 	}
-
-	// Log the raw result for debugging if no type matches
-	return nil, fmt.Errorf("unknown result format: %v", genericResp.Result)
+	// Attempt to decode as []int64
+	var resultArrayInt []int64
+	if err := json.Unmarshal(rawMessage, &resultArrayInt); err == nil {
+		*result = resultArrayInt
+		return nil
+	}
+	// If no known type matches, return an error
+	return fmt.Errorf("unknown result format: %s", string(rawMessage))
 }
 
 // GetDeck checks if a given deck exists in Anki
@@ -116,13 +143,9 @@ func GetDeck(deckName string, logger *zap.SugaredLogger) (bool, error) {
 
 // CreateDeck creates a new deck in Anki
 func CreateDeck(deckName string, logger *zap.SugaredLogger) (bool, error) {
-	reqBody := map[string]interface{}{
-		"action":  "createDeck",
-		"version": 6,
-		"params": map[string]string{
-			"deck": deckName,
-		},
-	}
+	reqBody := NewAnkiRequestBody("createDeck", map[string]string{
+		"deck": deckName,
+	})
 
 	resp, err := processRequest(reqBody)
 	if err != nil {
@@ -132,6 +155,19 @@ func CreateDeck(deckName string, logger *zap.SugaredLogger) (bool, error) {
 
 	if resp == nil {
 		return false, errors.New("reponse for createdeck is nil")
+	}
+	return true, nil
+}
+
+func deleteDeck(deckName string, logger *zap.SugaredLogger) (bool, error) {
+	reqBody := NewAnkiRequestBody("deleteDecks", map[string]interface{}{
+		"decks":    []string{deckName},
+		"cardsToo": true,
+	})
+	_, err := processRequest(reqBody)
+	if err != nil {
+		logger.Errorf("Failed to process request: %v", err)
+		return false, err
 	}
 	return true, nil
 }

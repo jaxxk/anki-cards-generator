@@ -1,7 +1,7 @@
 package create
 
 var DefaultVersion int = 6
-var FlashcardBatchSize int = 50
+var FlashcardBatchSize int = 30
 
 type AnkiRequestBody struct {
 	Action  string     `json:"action"`
