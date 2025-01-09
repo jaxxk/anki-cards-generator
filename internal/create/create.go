@@ -1,18 +1,32 @@
 package create
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/jaxxk/anki-cards-generator/internal/transform"
 	"go.uber.org/zap"
 )
 
+// deck: deck of flashcards
 func SendToAnki(deck transform.Deck, logger *zap.SugaredLogger) error {
+	if ok, err := EnsureAnkiConnect(); err != nil || !ok {
+		return errors.New("cannot connect to Anki Connect")
+	}
 	// Ensure the deck exists
 	if err := existsDeck(deck.Title, logger); err != nil {
 		return fmt.Errorf("failed to ensure deck exists: %w", err)
 	}
 
+	err := sendToAnki(deck, logger)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func sendToAnki(deck transform.Deck, logger *zap.SugaredLogger) error {
 	// Prepare to batch cards into `FlashcardBatchSize`
 	batch := []Note{}
 	for i, card := range deck.Cards {
@@ -48,6 +62,7 @@ func sendBatchToAnki(batch []Note, logger *zap.SugaredLogger) error {
 	return nil
 }
 
+// checks if deck exists, creates one if it doesn't exist
 func existsDeck(title string, logger *zap.SugaredLogger) error {
 	// Check if the deck exists
 	deckExists, err := GetDeck(title, logger)

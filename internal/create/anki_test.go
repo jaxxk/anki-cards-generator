@@ -86,7 +86,7 @@ func TestSendToAnkiLive(t *testing.T) {
 	}()
 
 	// Run the function
-	err := SendToAnki(testDeck, logger)
+	err := sendToAnki(testDeck, logger)
 	if err != nil {
 		t.Fatalf("SendToAnki failed: %v", err)
 	}

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/jaxxk/anki-cards-generator/internal/create"
 	"github.com/jaxxk/anki-cards-generator/internal/transform"
 	"github.com/jaxxk/anki-cards-generator/pkg/logging"
 	"github.com/jaxxk/anki-cards-generator/pkg/utils"
@@ -66,13 +67,19 @@ var generateCmd = &cobra.Command{
 			newDeck.UpdateTitle(Title)
 		}
 
-		// Save Deck to Processing Dir
+		// Save Deck to Processing Dir For retry
 		jsonPath, err := transform.SaveDeck(newDeck)
 		if err != nil {
 			logger.Error("Failed to save deck to %v", jsonPath)
 			return fmt.Errorf("failed to save deck to %v", jsonPath)
 		}
 
+		logger.Infof("Successfully Created %v deck JSON", newDeck.Title)
+
+		err = create.SendToAnki(newDeck, logger)
+		if err != nil {
+			return err
+		}
 		logger.Infof("Successfully Created %v deck JSON", newDeck.Title)
 		return nil
 	},
