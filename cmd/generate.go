@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 
 	"github.com/jaxxk/anki-cards-generator/internal/create"
@@ -27,6 +28,11 @@ var generateCmd = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) error {
 		ctx := cmd.Context()
 		logger := logging.FromContext(ctx)
+
+		// ensures anki is running before processing the notes
+		if ok, err := create.EnsureAnkiConnect(); err != nil || !ok {
+			return errors.New("cannot connect to Anki Connect")
+		}
 
 		// Validate and resolve file path
 		FilePath, err := utils.ValidateAndResolvePath(FilePath, logger)
@@ -80,7 +86,7 @@ var generateCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
-		logger.Infof("Successfully Created %v deck JSON", newDeck.Title)
+		logger.Infof("Successfully Created %v deck in anki", newDeck.Title)
 		return nil
 	},
 }

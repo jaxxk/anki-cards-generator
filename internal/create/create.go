@@ -1,7 +1,6 @@
 package create
 
 import (
-	"errors"
 	"fmt"
 
 	"github.com/jaxxk/anki-cards-generator/internal/transform"
@@ -10,9 +9,7 @@ import (
 
 // deck: deck of flashcards
 func SendToAnki(deck transform.Deck, logger *zap.SugaredLogger) error {
-	if ok, err := EnsureAnkiConnect(); err != nil || !ok {
-		return errors.New("cannot connect to Anki Connect")
-	}
+
 	// Ensure the deck exists
 	if err := existsDeck(deck.Title, logger); err != nil {
 		return fmt.Errorf("failed to ensure deck exists: %w", err)

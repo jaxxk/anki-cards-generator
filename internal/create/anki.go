@@ -11,8 +11,9 @@ import (
 	"go.uber.org/zap"
 )
 
-// var ANKI_ENDPOINT = "http://localhost:8765"
-var ANKI_ENDPOINT = "http://host.docker.internal:8765"
+var ANKI_ENDPOINT = "http://localhost:8765"
+
+// var ANKI_ENDPOINT = "http://host.docker.internal:8765"
 
 type AnkiConnectGenericResponse struct {
 	Result json.RawMessage `json:"result"`
