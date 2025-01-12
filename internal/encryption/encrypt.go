@@ -74,18 +74,18 @@ func EncryptFile(inputPath, outputPath string, key []byte) error {
 	return nil
 }
 
-func DecryptFile(inputPath string, key []byte) (*Key, error) {
+func DecryptFile(inputPath string, key []byte) (Key, error) {
 	// Open the input file
 	inputFile, err := os.Open(inputPath)
 	if err != nil {
-		return nil, fmt.Errorf("failed to open input file: %w", err)
+		return Key{}, fmt.Errorf("failed to open input file: %w", err)
 	}
 	defer inputFile.Close()
 
 	// Read the file contents
 	data, err := io.ReadAll(inputFile)
 	if err != nil {
-		return nil, fmt.Errorf("failed to read input file: %w", err)
+		return Key{}, fmt.Errorf("failed to read input file: %w", err)
 	}
 
 	// Separate nonce and ciphertext
@@ -94,28 +94,28 @@ func DecryptFile(inputPath string, key []byte) (*Key, error) {
 	// Create AES cipher
 	block, err := aes.NewCipher(key)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create AES cipher: %w", err)
+		return Key{}, fmt.Errorf("failed to create AES cipher: %w", err)
 	}
 
 	// Create GCM cipher
 	aesGCM, err := cipher.NewGCM(block)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create GCM: %w", err)
+		return Key{}, fmt.Errorf("failed to create GCM: %w", err)
 	}
 
 	// Decrypt the ciphertext
 	plainText, err := aesGCM.Open(nil, nonce, cipherText, nil)
 	if err != nil {
-		return nil, fmt.Errorf("failed to decrypt: %w", err)
+		return Key{}, fmt.Errorf("failed to decrypt: %w", err)
 	}
 
 	// Parse the decrypted plaintext into the Key struct
 	var keyStruct Key
 	if err := json.Unmarshal(plainText, &keyStruct); err != nil {
-		return nil, fmt.Errorf("failed to unmarshal decrypted data into struct: %w", err)
+		return Key{}, fmt.Errorf("failed to unmarshal decrypted data into struct: %w", err)
 	}
 
-	return &keyStruct, nil
+	return keyStruct, nil
 }
 
 // GenerateRandomKey generates a random 32-byte key for AES-256.
@@ -173,7 +173,7 @@ func SaveEncryptionKeyToEnv(key string, data []byte) error {
 	default:
 		return fmt.Errorf("unsupported operating system: %s", runtime.GOOS)
 	}
-
+	fmt.Println("Environment variable added. Run 'source ~/.zshrc' (or ~/.bashrc) to apply changes.")
 	return nil
 }
 
