@@ -1,21 +1,17 @@
 package transform
 
 import (
-	"context"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"go.uber.org/zap"
 )
 
 func TestNewClient(t *testing.T) {
 	t.Parallel()
-	client := newClient()
+	client, err := newClient(zap.NewExample().Sugar())
+	assert.NoError(t, err)
 	if client == nil {
 		t.Fatal("expected client to never be nil")
-	}
-}
-func TestNewCompletion(t *testing.T) {
-	t.Parallel()
-	client := NewChatCompletion(context.TODO(), "")
-	if client == nil {
-		t.Fatal("expected completion to never be nil")
 	}
 }

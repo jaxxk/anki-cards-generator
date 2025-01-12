@@ -2,8 +2,10 @@ package cmd
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 
+	"github.com/jaxxk/anki-cards-generator/internal/create"
 	"github.com/jaxxk/anki-cards-generator/internal/transform"
 	"github.com/jaxxk/anki-cards-generator/pkg/logging"
 	"github.com/jaxxk/anki-cards-generator/pkg/utils"
@@ -27,6 +29,11 @@ var generateCmd = &cobra.Command{
 		ctx := cmd.Context()
 		logger := logging.FromContext(ctx)
 
+		// ensures anki is running before processing the notes
+		if ok, err := create.EnsureAnkiConnect(); err != nil || !ok {
+			return errors.New("cannot connect to Anki Connect")
+		}
+
 		// Validate and resolve file path
 		FilePath, err := utils.ValidateAndResolvePath(FilePath, logger)
 		if err != nil {
@@ -40,7 +47,10 @@ var generateCmd = &cobra.Command{
 		}
 
 		// Generate chat completion using the transform package
-		result := transform.NewChatCompletion(ctx, inputText)
+		result, err := transform.NewChatCompletion(ctx, inputText)
+		if err != nil {
+			return fmt.Errorf("failed to create a new chat completion %v", err)
+		}
 		if result == nil || len(result.Choices) == 0 {
 			logger.Error("Failed to generate flashcards or received empty response")
 			return fmt.Errorf("failed to generate flashcards or received empty response")
@@ -66,7 +76,7 @@ var generateCmd = &cobra.Command{
 			newDeck.UpdateTitle(Title)
 		}
 
-		// Save Deck to Processing Dir
+		// Save Deck to Processing Dir For retry
 		jsonPath, err := transform.SaveDeck(newDeck)
 		if err != nil {
 			logger.Error("Failed to save deck to %v", jsonPath)
@@ -74,6 +84,12 @@ var generateCmd = &cobra.Command{
 		}
 
 		logger.Infof("Successfully Created %v deck JSON", newDeck.Title)
+
+		err = create.SendToAnki(newDeck, logger)
+		if err != nil {
+			return err
+		}
+		logger.Infof("Successfully Created %v deck in anki", newDeck.Title)
 		return nil
 	},
 }
