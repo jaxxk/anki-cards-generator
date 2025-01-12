@@ -21,7 +21,8 @@ Instructions:
    - Encourage deeper thinking or analysis, rather than simple fact recall.
 3. Provide detailed answers: The back should provide a comprehensive explanation that answers the question on the front. The explanation should integrate information from the content, show the relationship between concepts, and elaborate on their significance.
 4. Include validated code examples: If the text file you are processing contains code examples, verify their correctness. If they are valid, append them to the back of the flashcard. If the code is incorrect, correct it while preserving the original intent. Clearly mark or replace the erroneous parts with corrected versions.
-5. Output Format: Return the flashcards in a JSON array, where each flashcard is an object with the keys 'front' (the question) and 'back' (the explanation, along with any validated code examples in python or golang).
+5. Each flashcard should incorporate 1 concept unless other concepts work together or complement each other. 
+6. Output Format: Return the flashcards in a JSON array, where each flashcard is an object with the keys 'front' (the question) and 'back' (the explanation, along with any validated code examples in python or golang).
 `
 
 // DefaultChatCompletionConfigs constructs the OpenAI ChatCompletionNewParams for the given input text.
