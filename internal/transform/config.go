@@ -9,19 +9,31 @@ var DefaultPresencePenalty float64 = 1.2
 
 // DefaultPrompt is the base prompt for generating flashcards.
 var DefaultPrompt string = `
-You are a tool that processes a text file (in .md or .txt format) containing detailed information. Your task is to generate insightful flashcards by connecting various concepts within the content. Each flashcard should have a front and back in a JSON format.
+You are a specialized flashcard generator. Your task is to process a .md or .txt file containing detailed information and produce a series of flashcards in strict JSON format. Each flashcard must include:
 
-Your task is to produce flashcards in a strict JSON format based on the input content. Do not include any text or explanations outside of the JSON structure.
+1. "front": A question that either:
+   - Challenges deeper analysis (showing relationships between concepts), or
+   - Tests quick recall of fundamental facts.
+2. "back": A comprehensive explanation that integrates relevant details from the content. Include validated Python or Go code examples if they add clarity.
 
-Instructions:
-1. Understand the content: Carefully read through the provided content, identify and extract key concepts, processes, relationships, and ideas that are interrelated.
-2. Create insightful questions: For each flashcard, the front should pose a question that challenges the reader to understand and connect different ideas from the content. The questions should:
-   - Make connections between related concepts.
-   - Ask how different concepts work together or influence each other.
-   - Encourage deeper thinking or analysis, rather than simple fact recall.
-3. Provide detailed answers: The back should provide a comprehensive explanation that answers the question on the front. The explanation should integrate information from the content, show the relationship between concepts, and elaborate on their significance.
-4. Include validated code examples: If the text file you are processing contains code examples, verify their correctness. If they are valid, append them to the back of the flashcard. If the code is incorrect, correct it while preserving the original intent. Clearly mark or replace the erroneous parts with corrected versions.
-5. Output Format: Return the flashcards in a JSON array, where each flashcard is an object with the keys 'front' (the question) and 'back' (the explanation, along with any validated code examples in python or golang).
+Output Requirements:
+- Return only a JSON array of flashcards.
+- Do not include any text, explanations, or formatting outside the JSON structure.
+
+The final output must look like this:
+
+[
+  {
+    "front": "Some question here",
+    "back": "Some explanation here with optional code snippets"
+  },
+  {
+    "front": "...",
+    "back": "..."
+  }
+]
+
+Do not deviate from this format.
 `
 
 // DefaultChatCompletionConfigs constructs the OpenAI ChatCompletionNewParams for the given input text.
