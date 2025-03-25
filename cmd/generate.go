@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 
@@ -40,35 +39,10 @@ var generateCmd = &cobra.Command{
 			return fmt.Errorf("validation error for file path: %w", err)
 		}
 
-		// Read input text from file
-		inputText, err := utils.ReadFromFile(FilePath, logger)
+		// Transforming notes into deck struct
+		newDeck, err := transform.TransformNote(ctx, FilePath)
 		if err != nil {
-			return fmt.Errorf("error reading file %s: %w", FilePath, err)
-		}
-
-		// Generate chat completion using the transform package
-		result, err := transform.NewChatCompletion(ctx, inputText)
-		if err != nil {
-			return fmt.Errorf("failed to create a new chat completion %v", err)
-		}
-		if result == nil || len(result.Choices) == 0 {
-			logger.Error("Failed to generate flashcards or received empty response")
-			return fmt.Errorf("failed to generate flashcards or received empty response")
-		}
-
-		// Unmarshal JSON response into flashcards deck
-		rawOutput := result.Choices[0].Message.Content
-		newDeck := transform.Deck{}
-		err = json.Unmarshal([]byte(rawOutput), &newDeck)
-		if err != nil {
-			logger.Errorf("Failed to parse flashcards JSON: %v", err)
-			return fmt.Errorf("invalid JSON response from transform package")
-		}
-
-		// Validate deck content
-		if len(newDeck.Cards) == 0 {
-			logger.Error("Generated flashcards deck is empty")
-			return fmt.Errorf("generated flashcards deck is empty")
+			logger.Errorf("Error: ", err)
 		}
 
 		// Update Title
